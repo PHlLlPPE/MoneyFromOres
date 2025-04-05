@@ -1,0 +1,10 @@
+name: MoneyFromOres
+version: "1.0"
+main: come.example.moneyfromores.MoneyFromOres
+api-version: 1.13
+depend: [vault]
+commands:
+  mfo:
+    description: Commande de MoneyFromOres
+    usage: /<command> <reload|stats>
+    
