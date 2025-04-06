@@ -1,10 +1,32 @@
 name: MoneyFromOres
 version: "1.0"
-main: come.example.moneyfromores.MoneyFromOres
-api-version: 1.13
-depend: [vault]
+main: com.example.moneyfromores.MoneyFromOres
+api-version: 1.20
+api: "1.20"
+author: Philippe
+website: https://github.com/tonrepo
+depend: [Vault]
+
 commands:
   mfo:
-    description: Commande de MoneyFromOres
+    description: Commande principale du plugin MoneyFromOres
     usage: /<command> <reload|stats>
-    
+    permission: moneyfromores.command
+
+permissions:
+  moneyfromores.command:
+    description: Permission pour utiliser les commandes /mfo
+    default: op
+  moneyfromores.multiplier.2:
+    description: Multiplie la récompense par 2
+    default: false
+  moneyfromores.multiplier.3:
+    description: Multiplie la récompense par 3
+    default: false
+  moneyfromores.multiplier.4:
+    description: Multiplie la récompense par 4
+    default: false
+  moneyfromores.multiplier.5:
+    description: Multiplie la récompense par 5
+    default: false
+  # Ajoute d'autres multiplicateurs si besoin

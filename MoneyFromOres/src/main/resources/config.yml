@@ -1,3 +1,5 @@
+# 💰 Configuration du plugin MoneyFromOres
+
 rewards:
   DIAMOND_ORE: 20.0
   GOLD_ORE: 15.0
@@ -6,6 +8,8 @@ rewards:
   COPPER_ORE: 8.0
   REDSTONE_ORE: 5.0
   LAPIS_ORE: 5.0
+  # Tu peux ajouter d'autres minerais ici :
+  # DEEPSLATE_DIAMOND_ORE: 22.0
 
 messages:
-  reward: "§aTu viens de gagner {amount} money pour avoir miné un {ore} !"
+  reward: "§aTu as gagné {amount} money pour avoir miné un {ore} ! (x{multiplier})"
