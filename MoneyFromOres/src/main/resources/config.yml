@@ -1,15 +1,53 @@
-# 💰 Configuration du plugin MoneyFromOres
+# 📦 CONFIGURATION DU PLUGIN MONEYFROMORES
+# ----------------------------------------
+# Plugin développé par QuantumCraft-Studios (2025)
+# Ce fichier gère les récompenses, les messages et les effets visuels.
+
+# 💰 REWARDS
+# Définis ici la récompense de base pour chaque minerai cassé.
+# Le montant sera multiplié selon les permissions du joueur :
+# Exemple : "moneyfromores.multiplier.2" → x2
 
 rewards:
   DIAMOND_ORE: 20.0
-  GOLD_ORE: 15.0
-  IRON_ORE: 10.0
+  DEEPSLATE_DIAMOND_ORE: 22.0
   EMERALD_ORE: 25.0
+  DEEPSLATE_EMERALD_ORE: 27.0
+  GOLD_ORE: 15.0
+  DEEPSLATE_GOLD_ORE: 17.0
+  IRON_ORE: 10.0
+  DEEPSLATE_IRON_ORE: 12.0
   COPPER_ORE: 8.0
+  DEEPSLATE_COPPER_ORE: 10.0
   REDSTONE_ORE: 5.0
+  DEEPSLATE_REDSTONE_ORE: 6.0
   LAPIS_ORE: 5.0
-  # Tu peux ajouter d'autres minerais ici :
-  # DEEPSLATE_DIAMOND_ORE: 22.0
+  DEEPSLATE_LAPIS_ORE: 6.0
+  NETHER_QUARTZ_ORE: 5.0
+  NETHER_GOLD_ORE: 4.0
+
+# 💬 MESSAGES
+# Les messages envoyés au joueur lors du gain d'argent.
+# Placeholders :
+# - {amount} = montant gagné
+# - {ore} = type de minerai (ex. DIAMOND_ORE)
+# - {multiplier} = multiplicateur appliqué
 
 messages:
   reward: "§aTu as gagné {amount} money pour avoir miné un {ore} ! (x{multiplier})"
+  no_reward: "§cCe minerai ne donne pas de récompense."
+  anti_farm: "§cPas de reward : ce minerai a été placé par un joueur."
+
+# ✨ EFFETS VISUELS ET SONORES
+# Active les effets lorsque le joueur gagne de l'argent.
+# sound : doit être un nom de son Minecraft valide (ou "none")
+# particle : idem pour les particules (ou "none")
+
+effects:
+  enabled: true
+  sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  particle: VILLAGER_HAPPY
+
+# 📈 TOP CONFIG (futur)
+# Ici tu pourras définir si /mfo top doit afficher plus de 5 joueurs
+# top-limit: 5
