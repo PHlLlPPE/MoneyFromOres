@@ -9,22 +9,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Location;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class MoneyFromOres extends JavaPlugin implements Listener {
 
     private Economy econ;
-
     private FileConfiguration statsConfig;
     private File statsFile;
 
-    // Liste des minerais éligibles
+    private final HashSet<String> placedBlocks = new HashSet<>();
+
     private final List<Material> ores = Arrays.asList(
         Material.DIAMOND_ORE,
         Material.GOLD_ORE,
@@ -33,7 +36,6 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         Material.COPPER_ORE,
         Material.REDSTONE_ORE,
         Material.LAPIS_ORE
-        // Ajoute ici d'autres minerais si besoin
     );
 
     @Override
@@ -68,7 +70,6 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         return econ != null;
     }
 
-    // Chargement des stats
     public void loadStatsFile() {
         statsFile = new File(getDataFolder(), "stats.yml");
         if (!statsFile.exists()) {
@@ -94,7 +95,6 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         return statsConfig;
     }
 
-    // Récupère le multiplicateur depuis les permissions
     public double getMultiplierForPlayer(Player player) {
         double multiplier = 1.0;
         for (int i = 10; i >= 1; i--) {
@@ -106,6 +106,22 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         return multiplier;
     }
 
+    private String serializeLocation(Location location) {
+        return location.getWorld().getName() + ":"
+             + location.getBlockX() + ","
+             + location.getBlockY() + ","
+             + location.getBlockZ();
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Material blockType = event.getBlockPlaced().getType();
+        if (ores.contains(blockType)) {
+            String loc = serializeLocation(event.getBlockPlaced().getLocation());
+            placedBlocks.add(loc);
+        }
+    }
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -115,14 +131,20 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         Material blockType = event.getBlock().getType();
         if (!ores.contains(blockType)) return;
 
+        String loc = serializeLocation(event.getBlock().getLocation());
+
+        // Système anti-farm
+        if (placedBlocks.contains(loc)) {
+            placedBlocks.remove(loc);
+            return;
+        }
+
         double baseReward = getConfig().getDouble("rewards." + blockType.name(), 10.0);
         double multiplier = getMultiplierForPlayer(player);
         double reward = baseReward * multiplier;
 
-        // Récompense monétaire
         econ.depositPlayer(player, reward);
 
-        // Message personnalisé
         String message = getConfig().getString("messages.reward",
             "§aTu as gagné {amount} money pour avoir miné un {ore} !");
         message = message.replace("{amount}", String.format("%.2f", reward))
@@ -131,7 +153,6 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
 
         player.sendMessage(message);
 
-        // Mise à jour des stats
         String uuid = player.getUniqueId().toString();
         int blocks = statsConfig.getInt(uuid + ".blocks", 0);
         double total = statsConfig.getDouble(uuid + ".earned", 0.0);

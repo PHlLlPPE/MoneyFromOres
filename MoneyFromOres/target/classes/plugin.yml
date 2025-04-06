@@ -9,24 +9,34 @@ depend: [Vault]
 
 commands:
   mfo:
-    description: Commande principale du plugin MoneyFromOres
-    usage: /<command> <reload|stats>
+    description: Commandes du plugin MoneyFromOres
+    usage: /<command> <reload|stats|top>
     permission: moneyfromores.command
 
 permissions:
   moneyfromores.command:
-    description: Permission pour utiliser les commandes /mfo
+    description: Accès aux commandes du plugin (reload, stats, top)
     default: op
+
+  moneyfromores.top:
+    description: Afficher le classement des meilleurs mineurs (/mfo top)
+    default: true
+
+  moneyfromores.multiplier.1:
+    description: Multiplie les gains par 1 (par défaut)
+    default: true
   moneyfromores.multiplier.2:
-    description: Multiplie la récompense par 2
+    description: Multiplie les gains par 2
     default: false
   moneyfromores.multiplier.3:
-    description: Multiplie la récompense par 3
+    description: Multiplie les gains par 3
     default: false
   moneyfromores.multiplier.4:
-    description: Multiplie la récompense par 4
+    description: Multiplie les gains par 4
     default: false
   moneyfromores.multiplier.5:
-    description: Multiplie la récompense par 5
+    description: Multiplie les gains par 5
     default: false
-  # Ajoute d'autres multiplicateurs si besoin
+  moneyfromores.multiplier.10:
+    description: Multiplie les gains par 10
+    default: false
