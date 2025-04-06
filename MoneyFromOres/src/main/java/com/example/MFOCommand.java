@@ -52,38 +52,47 @@ public class MFOCommand implements CommandExecutor {
             return true;
         }
 
-        // /mfo top
-        if (args.length == 1 && args[0].equalsIgnoreCase("top")) {
-            FileConfiguration stats = plugin.getStatsConfig();
+        // /mfo top [earned]
+        if (args.length >= 1 && args[0].equalsIgnoreCase("top")) {
+            boolean sortByMoney = args.length > 1 && args[1].equalsIgnoreCase("earned");
 
-            Map<String, Integer> sorted = new HashMap<>();
+            FileConfiguration stats = plugin.getStatsConfig();
+            Map<String, Double> sorted = new HashMap<>();
 
             for (String key : stats.getKeys(false)) {
-                int blocks = stats.getInt(key + ".blocks", 0);
-                sorted.put(key, blocks);
+                double value = sortByMoney
+                        ? stats.getDouble(key + ".earned", 0.0)
+                        : stats.getInt(key + ".blocks", 0);
+                sorted.put(key, value);
             }
 
-            List<Map.Entry<String, Integer>> top = sorted.entrySet().stream()
-                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            List<Map.Entry<String, Double>> top = sorted.entrySet().stream()
+                    .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                     .limit(5)
                     .toList();
 
-            sender.sendMessage("§e--- TOP Mineurs (Minerais minés) ---");
+            sender.sendMessage("§e--- TOP " + (sortByMoney ? "Riches (Argent gagné)" : "Mineurs (Minerais minés)") + " ---");
+
             int i = 1;
-            for (Map.Entry<String, Integer> entry : top) {
+            for (Map.Entry<String, Double> entry : top) {
                 String name = Bukkit.getOfflinePlayer(UUID.fromString(entry.getKey())).getName();
-                sender.sendMessage("§6#" + i + " §f" + (name != null ? name : "Inconnu") + " §7- §a" + entry.getValue() + " minerais");
+                String formatted = sortByMoney
+                        ? String.format("§a%.2f $", entry.getValue())
+                        : String.format("§a%d minerais", entry.getValue().intValue());
+
+                sender.sendMessage("§6#" + i + " §f" + (name != null ? name : "Inconnu") + " §7- " + formatted);
                 i++;
             }
 
             return true;
         }
 
-        // /mfo (aide par défaut)
+        // Aide par défaut
         sender.sendMessage("§6Utilisation des commandes :");
         sender.sendMessage("§e/mfo reload §7- Recharge la configuration");
         sender.sendMessage("§e/mfo stats §7- Affiche tes statistiques personnelles");
-        sender.sendMessage("§e/mfo top §7- Affiche le classement des meilleurs mineurs");
+        sender.sendMessage("§e/mfo top §7- Classement par minerais minés");
+        sender.sendMessage("§e/mfo top earned §7- Classement par argent gagné");
         return true;
     }
 }
