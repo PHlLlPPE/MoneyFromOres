@@ -61,7 +61,7 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
             "§7Auteur : §fQuantumCraft-Studio",
             "§7Description : §eRécompense les joueurs pour l'extraction de minerais.",
             "§7Commandes : §a/mfo stats, /mfo top, /mfo toggle, /mfo reload",
-            "§7Site : §nhttps://quantumcraft-studios.com/",
+            "§7Site : §nhttps://quantumcraft.dev",
             "§9━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         };
         for (String line : startupArt) {
@@ -161,6 +161,10 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
             if (antiFarmMsg != null) player.sendMessage(antiFarmMsg);
             return;
         }
+
+        // 🎲 Système de chance
+        double chance = getConfig().getDouble("chance", 1.0);
+        if (Math.random() > chance) return;
 
         double baseReward = getConfig().getDouble("rewards." + type.name(), 0.0);
         if (baseReward <= 0) {
