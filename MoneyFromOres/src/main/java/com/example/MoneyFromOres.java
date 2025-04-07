@@ -24,6 +24,9 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
     private FileConfiguration statsConfig;
     private File statsFile;
 
+    private FileConfiguration toggleConfig;
+    private File toggleFile;
+
     private final HashSet<String> placedBlocks = new HashSet<>();
 
     private final List<Material> ores = Arrays.asList(
@@ -49,6 +52,7 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
     public void onEnable() {
         saveDefaultConfig();
         loadStatsFile();
+        loadToggleFile();
 
         if (!setupEconomy()) {
             getLogger().severe("Vault ou un plugin d'économie est manquant !");
@@ -64,6 +68,7 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         saveStatsFile();
+        saveToggleFile();
         getLogger().info("❌ MoneyFromOres désactivé.");
     }
 
@@ -144,18 +149,14 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         if (placedBlocks.contains(loc)) {
             placedBlocks.remove(loc);
             String antiFarmMsg = getConfig().getString("messages.anti_farm");
-            if (antiFarmMsg != null) {
-                player.sendMessage(antiFarmMsg);
-            }
+            if (antiFarmMsg != null) player.sendMessage(antiFarmMsg);
             return;
         }
 
         double baseReward = getConfig().getDouble("rewards." + blockType.name(), 0.0);
         if (baseReward <= 0) {
             String noRewardMsg = getConfig().getString("messages.no_reward");
-            if (noRewardMsg != null) {
-                player.sendMessage(noRewardMsg);
-            }
+            if (noRewardMsg != null) player.sendMessage(noRewardMsg);
             return;
         }
 
@@ -164,15 +165,18 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
 
         econ.depositPlayer(player, reward);
 
-        // Message
         String message = getConfig().getString("messages.reward",
             "§aTu as gagné {amount} money pour avoir miné un {ore} !");
         message = message.replace("{amount}", String.format("%.2f", reward))
                          .replace("{ore}", blockType.name())
                          .replace("{multiplier}", String.valueOf(multiplier));
-        player.sendMessage(message);
 
-        // Effets dynamiques depuis config.yml
+        // Vérification toggle
+        if (isToggleEnabled(player)) {
+            player.sendMessage(message);
+        }
+
+        // Effets
         if (getConfig().getBoolean("effects.enabled", true)) {
             String soundName = getConfig().getString("effects.sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
             String particleName = getConfig().getString("effects.particle", "VILLAGER_HAPPY");
@@ -187,7 +191,7 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
                 }
             }
 
-            // ✨ Particules
+            // ✨ Particule
             if (!particleName.equalsIgnoreCase("none")) {
                 try {
                     Particle particle = Particle.valueOf(particleName.toUpperCase());
@@ -206,5 +210,38 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
         statsConfig.set(uuid + ".blocks", blocks + 1);
         statsConfig.set(uuid + ".earned", total + reward);
         saveStatsFile();
+    }
+
+    // 🔁 TOGGLE YAML
+    public void loadToggleFile() {
+        toggleFile = new File(getDataFolder(), "toggle.yml");
+        if (!toggleFile.exists()) {
+            try {
+                toggleFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        toggleConfig = YamlConfiguration.loadConfiguration(toggleFile);
+    }
+
+    public void saveToggleFile() {
+        try {
+            toggleConfig.save(toggleFile);
+        } catch (IOException e) {
+            getLogger().severe("Erreur lors de la sauvegarde de toggle.yml !");
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isToggleEnabled(Player player) {
+        return toggleConfig.getBoolean(player.getUniqueId().toString(), true);
+    }
+
+    public void toggleMessages(Player player) {
+        String uuid = player.getUniqueId().toString();
+        boolean current = toggleConfig.getBoolean(uuid, true);
+        toggleConfig.set(uuid, !current);
+        saveToggleFile();
     }
 }
