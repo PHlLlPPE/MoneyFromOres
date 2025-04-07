@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://imgur.com/q2lWFrC" alt="MoneyFromOres Banner">
+  <img src="https://i.imgur.com/q2lWFrC.jpeg" alt="MoneyFromOres Banner">
 </p>
 
 # 💰 MoneyFromOres
