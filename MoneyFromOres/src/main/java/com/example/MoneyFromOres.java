@@ -30,22 +30,14 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
     private final HashSet<String> placedBlocks = new HashSet<>();
 
     private final List<Material> ores = Arrays.asList(
-        Material.DIAMOND_ORE,
-        Material.DEEPSLATE_DIAMOND_ORE,
-        Material.EMERALD_ORE,
-        Material.DEEPSLATE_EMERALD_ORE,
-        Material.GOLD_ORE,
-        Material.DEEPSLATE_GOLD_ORE,
-        Material.IRON_ORE,
-        Material.DEEPSLATE_IRON_ORE,
-        Material.COPPER_ORE,
-        Material.DEEPSLATE_COPPER_ORE,
-        Material.REDSTONE_ORE,
-        Material.DEEPSLATE_REDSTONE_ORE,
-        Material.LAPIS_ORE,
-        Material.DEEPSLATE_LAPIS_ORE,
-        Material.NETHER_QUARTZ_ORE,
-        Material.NETHER_GOLD_ORE
+            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
+            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
+            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
+            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
+            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
+            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
+            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
+            Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE
     );
 
     @Override
@@ -62,20 +54,40 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
 
         Bukkit.getPluginManager().registerEvents(this, this);
         getCommand("mfo").setExecutor(new MFOCommand(this));
-        getLogger().info("✅ MoneyFromOres activé !");
+
+        String[] startupArt = {
+            "§9━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "§b🟢 [MFO] Plugin MoneyFromOres v1.0 activé !",
+            "§7Auteur : §fQuantumCraft-Studio",
+            "§7Description : §eRécompense les joueurs pour l'extraction de minerais.",
+            "§7Commandes : §a/mfo stats, /mfo top, /mfo toggle, /mfo reload",
+            "§7Site : §nhttps://quantumcraft-studios.com/",
+            "§9━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        };
+        for (String line : startupArt) {
+            Bukkit.getConsoleSender().sendMessage(line);
+        }
     }
 
     @Override
     public void onDisable() {
         saveStatsFile();
         saveToggleFile();
-        getLogger().info("❌ MoneyFromOres désactivé.");
+
+        String[] shutdownArt = {
+            "§4━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "§c🔴 [MFO] Plugin MoneyFromOres désactivé.",
+            "§7Auteur : §fQuantumCraft-Studio",
+            "§7Merci d’avoir utilisé le plugin 💎",
+            "§4━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        };
+        for (String line : shutdownArt) {
+            Bukkit.getConsoleSender().sendMessage(line);
+        }
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
+        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) return false;
         econ = rsp.getProvider();
@@ -119,33 +131,30 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
     }
 
     private String serializeLocation(Location location) {
-        return location.getWorld().getName() + ":"
-             + location.getBlockX() + ","
-             + location.getBlockY() + ","
-             + location.getBlockZ();
+        return location.getWorld().getName() + ":" +
+               location.getBlockX() + "," +
+               location.getBlockY() + "," +
+               location.getBlockZ();
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        Material blockType = event.getBlockPlaced().getType();
-        if (ores.contains(blockType)) {
-            String loc = serializeLocation(event.getBlockPlaced().getLocation());
-            placedBlocks.add(loc);
+        Material type = event.getBlockPlaced().getType();
+        if (ores.contains(type)) {
+            placedBlocks.add(serializeLocation(event.getBlockPlaced().getLocation()));
         }
     }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
+        if (player.getGameMode() != GameMode.SURVIVAL) return;
 
-        if (!player.getGameMode().toString().equals("SURVIVAL")) return;
-
-        Material blockType = event.getBlock().getType();
-        if (!ores.contains(blockType)) return;
+        Material type = event.getBlock().getType();
+        if (!ores.contains(type)) return;
 
         String loc = serializeLocation(event.getBlock().getLocation());
 
-        // Anti-farm
         if (placedBlocks.contains(loc)) {
             placedBlocks.remove(loc);
             String antiFarmMsg = getConfig().getString("messages.anti_farm");
@@ -153,7 +162,7 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
             return;
         }
 
-        double baseReward = getConfig().getDouble("rewards." + blockType.name(), 0.0);
+        double baseReward = getConfig().getDouble("rewards." + type.name(), 0.0);
         if (baseReward <= 0) {
             String noRewardMsg = getConfig().getString("messages.no_reward");
             if (noRewardMsg != null) player.sendMessage(noRewardMsg);
@@ -165,54 +174,45 @@ public class MoneyFromOres extends JavaPlugin implements Listener {
 
         econ.depositPlayer(player, reward);
 
-        String message = getConfig().getString("messages.reward",
-            "§aTu as gagné {amount} money pour avoir miné un {ore} !");
-        message = message.replace("{amount}", String.format("%.2f", reward))
-                         .replace("{ore}", blockType.name())
-                         .replace("{multiplier}", String.valueOf(multiplier));
+        String msg = getConfig().getString("messages.reward",
+                "§aTu as gagné {amount} money pour avoir miné un {ore} !");
+        msg = msg.replace("{amount}", String.format("%.2f", reward))
+                 .replace("{ore}", type.name())
+                 .replace("{multiplier}", String.valueOf(multiplier));
 
-        // Vérification toggle
         if (isToggleEnabled(player)) {
-            player.sendMessage(message);
+            player.sendMessage(msg);
         }
 
-        // Effets
         if (getConfig().getBoolean("effects.enabled", true)) {
             String soundName = getConfig().getString("effects.sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
             String particleName = getConfig().getString("effects.particle", "VILLAGER_HAPPY");
 
-            // 🎵 Son
-            if (!soundName.equalsIgnoreCase("none")) {
-                try {
+            try {
+                if (!soundName.equalsIgnoreCase("none")) {
                     Sound sound = Sound.valueOf(soundName.toUpperCase());
-                    player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
-                } catch (IllegalArgumentException e) {
-                    getLogger().warning("⚠️ Son invalide dans config.yml : " + soundName);
+                    player.playSound(player.getLocation(), sound, 1f, 1f);
                 }
+            } catch (Exception e) {
+                getLogger().warning("Son invalide : " + soundName);
             }
 
-            // ✨ Particule
-            if (!particleName.equalsIgnoreCase("none")) {
-                try {
+            try {
+                if (!particleName.equalsIgnoreCase("none")) {
                     Particle particle = Particle.valueOf(particleName.toUpperCase());
                     player.spawnParticle(particle, player.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5);
-                } catch (IllegalArgumentException e) {
-                    getLogger().warning("⚠️ Particule invalide dans config.yml : " + particleName);
                 }
+            } catch (Exception e) {
+                getLogger().warning("Particule invalide : " + particleName);
             }
         }
 
-        // Stats
         String uuid = player.getUniqueId().toString();
-        int blocks = statsConfig.getInt(uuid + ".blocks", 0);
-        double total = statsConfig.getDouble(uuid + ".earned", 0.0);
-
-        statsConfig.set(uuid + ".blocks", blocks + 1);
-        statsConfig.set(uuid + ".earned", total + reward);
+        statsConfig.set(uuid + ".blocks", statsConfig.getInt(uuid + ".blocks", 0) + 1);
+        statsConfig.set(uuid + ".earned", statsConfig.getDouble(uuid + ".earned", 0) + reward);
         saveStatsFile();
     }
 
-    // 🔁 TOGGLE YAML
     public void loadToggleFile() {
         toggleFile = new File(getDataFolder(), "toggle.yml");
         if (!toggleFile.exists()) {
